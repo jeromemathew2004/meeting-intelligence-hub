@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, HTTPException
+from pydantic import BaseModel
 from services.ingestion import parse_transcript
 from services.extractor import extract_info
 from models.schema import ProcessedResponse
@@ -11,7 +12,7 @@ def root():
     return {"status": "Meeting Intelligence Hub API running"}
 
 
-@app.post("/process", response_model=ProcessedResponse)
+@app.post("/process")
 async def process_file(file: UploadFile):
 
     if not file.filename.endswith((".txt", ".vtt")):
@@ -27,7 +28,20 @@ async def process_file(file: UploadFile):
         "metadata": {
             "word_count": parsed["word_count"],
             "line_count": parsed["line_count"],
-            "char_count": parsed["char_count"]
+            "char_count": parsed["char_count"],
+            "clean_text": parsed["clean_text"]  # ← THIS was missing
         },
         "insights": extracted
     }
+
+
+class QueryRequest(BaseModel):
+    question: str
+    transcript_text: str
+
+
+@app.post("/query")
+async def query(request: QueryRequest):
+    from services.query_engine import answer_question
+    answer = answer_question(request.question, request.transcript_text)
+    return {"answer": answer}
