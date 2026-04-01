@@ -1,7 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import streamlit as st
 import requests
 import pandas as pd
 import json
+
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -87,6 +91,8 @@ with tab2:
     if not st.session_state.transcripts:
         st.info("Upload a transcript first to see extracted insights.")
     else:
+        from services.exporter import export_pdf
+
         # Collect all decisions and actions across all transcripts
         all_decisions = []
         all_actions = []
@@ -111,7 +117,6 @@ with tab2:
             )
             st.dataframe(df_decisions, use_container_width=True)
 
-            # CSV Export
             csv = df_decisions.to_csv(index=False)
             st.download_button(
                 label="⬇️ Export Decisions as CSV",
@@ -136,7 +141,6 @@ with tab2:
             )
             st.dataframe(df_actions, use_container_width=True)
 
-            # CSV Export
             csv_actions = df_actions.to_csv(index=False)
             st.download_button(
                 label="⬇️ Export Action Items as CSV",
@@ -147,6 +151,17 @@ with tab2:
         else:
             st.info("No action items found in uploaded transcripts.")
 
+        st.divider()
+
+        # ── PDF EXPORT
+        if all_decisions or all_actions:
+            pdf_bytes = export_pdf(all_decisions, all_actions)
+            st.download_button(
+                label="⬇️ Export Full Report as PDF",
+                data=pdf_bytes,
+                file_name="meeting_insights.pdf",
+                mime="application/pdf"
+            )
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CHATBOT
 # ══════════════════════════════════════════════════════════════════════════════
