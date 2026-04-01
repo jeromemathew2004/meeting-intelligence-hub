@@ -14,8 +14,8 @@ def root():
 @app.post("/process", response_model=ProcessedResponse)
 async def process_file(file: UploadFile):
 
-    if not file.filename.endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only .txt files supported")
+    if not file.filename.endswith((".txt", ".vtt")):
+        raise HTTPException(status_code=400, detail="Only .txt and .vtt files supported")
 
     content = await file.read()
     text = content.decode("utf-8")
