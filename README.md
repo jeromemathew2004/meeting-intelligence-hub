@@ -6,6 +6,18 @@ Built for the Cymonic Technologies Campus Recruitment 2026 Technical Challenge.
 
 ---
 
+## ❗ The Problem
+
+Teams often spend significant time manually reviewing meeting transcripts to identify key decisions and assigned tasks. Important information can be missed, leading to miscommunication and delays in execution.
+
+---
+
+## 💡 The Solution
+
+Meeting Intelligence Hub automatically processes meeting transcripts using AI to extract decisions, action items, and key insights. It also provides a chatbot interface for querying transcripts and supports exporting structured results, enabling teams to quickly act on meeting outcomes.
+
+--
+
 ## 🚀 Features
 
 - **Decision & Action Item Extractor** — Automatically identifies decisions made and tasks assigned from any meeting transcript
@@ -18,13 +30,16 @@ Built for the Cymonic Technologies Campus Recruitment 2026 Technical Challenge.
 
 ## 🛠️ Tech Stack
 
-| Layer        | Technology               |
-| ------------ | ------------------------ |
-| Frontend     | Streamlit                |
-| Backend      | FastAPI                  |
-| LLM          | Groq API (Llama 3.3 70B) |
-| File Parsing | Custom Python parser     |
-| Export       | Pandas + ReportLab       |
+## 🛠️ Tech Stack
+
+| Category             | Technology               |
+| -------------------- | ------------------------ |
+| Programming Language | Python                   |
+| Frontend             | Streamlit                |
+| Backend              | FastAPI                  |
+| LLM API              | Groq API (Llama 3.3 70B) |
+| Data Processing      | Pandas                   |
+| PDF Export           | ReportLab                |
 
 ---
 
