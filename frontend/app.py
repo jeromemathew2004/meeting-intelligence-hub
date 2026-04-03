@@ -263,6 +263,11 @@ with st.sidebar:
     if st.session_state.transcripts:
         for i, t in enumerate(st.session_state.transcripts, 1):
             st.success(f"**{i}.** {t['filename']}")
+        st.divider()    
+        if st.button("🗑️ Clear All Transcripts"):
+            st.session_state.transcripts = []
+            st.session_state.chat_history = []
+            st.rerun()        
     else:
         st.info("💡 No transcripts uploaded yet.\n\nGet started by uploading your first transcript!")
 
@@ -317,6 +322,7 @@ with tab1:
                             data["upload_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             st.session_state.transcripts.append(data)
                             st.success(f"✅ **{uploaded_file.name}** processed successfully!")
+                            st.rerun()  # Refresh to show new transcript in the list and insights
                         else:
                             st.error(f"❌ Failed to process **{uploaded_file.name}**: {response.text}")
                     except requests.exceptions.RequestException as e:
@@ -338,7 +344,24 @@ with tab1:
                 col2.metric("📏 Lines", metadata.get("line_count", 0))
                 col3.metric("✅ Decisions", len(insights.get("decisions", [])))
                 col4.metric("🎯 Actions", len(insights.get("actions", [])))
-                
+                           
+                # Speakers detected
+                speakers = metadata.get("speakers", [])
+                if speakers:
+                    st.markdown("**🎤 Speakers Detected:**")
+                    speaker_cols = st.columns(len(speakers) if len(speakers) <= 4 else 4)
+                    for i, speaker in enumerate(speakers):
+                        with speaker_cols[i % 4]:
+                            st.markdown(f"""
+                            <div style="background: #eef2ff; padding: 0.4rem 0.8rem; 
+                                        border-radius: 1rem; text-align: center;
+                                        border: 1px solid #c7d2fe; margin: 0.2rem 0;">
+                                <span style="color: #4338ca; font-weight: 600; font-size: 0.85rem;">
+                                    👤 {speaker}
+                                </span>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
                 # Preview
                 if "clean_text" in metadata:
                     st.markdown("**Preview:**")
@@ -570,6 +593,31 @@ with tab3:
         for q in example_questions:
             st.markdown(f"- 💡 *{q}*")
     else:
+                # Active transcripts indicator
+        st.markdown("**📂 Searching across these transcripts:**")
+        cols = st.columns(len(st.session_state.transcripts) if len(st.session_state.transcripts) <= 3 else 3)
+        for i, t in enumerate(st.session_state.transcripts):
+            with cols[i % 3]:
+                metadata = t.get("metadata", {})
+                speakers = metadata.get("speakers", [])
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+                            padding: 0.75rem 1rem;
+                            border-radius: 0.75rem;
+                            border-left: 3px solid #6366f1;
+                            margin-bottom: 0.5rem;">
+                    <p style="margin: 0; font-weight: 600; color: #4338ca; font-size: 0.85rem;">
+                        📄 {t['filename']}
+                    </p>
+                    <p style="margin: 0.25rem 0 0 0; color: #64748b; font-size: 0.75rem;">
+                        📝 {metadata.get('word_count', 0)} words
+                        · 🎤 {len(speakers)} speaker(s)
+                        · ✅ {len(t.get('insights', {}).get('decisions', []))} decisions
+                        · 🎯 {len(t.get('insights', {}).get('actions', []))} actions
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+        st.markdown("---")
         # Display chat history
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
@@ -613,7 +661,10 @@ with tab3:
                     "role": "assistant",
                     "content": answer
                 })
-        
+        if st.session_state.chat_history:
+                if st.button("🗑️ Clear Chat"):
+                     st.session_state.chat_history = []
+                     st.rerun()
         # Show helpful tips if no chat history
         if len(st.session_state.chat_history) == 0:
             st.markdown("---")

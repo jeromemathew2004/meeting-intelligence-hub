@@ -29,11 +29,12 @@ async def process_file(file: UploadFile):
             "word_count": parsed["word_count"],
             "line_count": parsed["line_count"],
             "char_count": parsed["char_count"],
-            "clean_text": parsed["clean_text"]  # ← THIS was missing
+            "clean_text": parsed["clean_text"],  # ← THIS was missing
+            "speakers": parsed.get("speakers", [])
         },
         "insights": extracted
     }
-
+ 
 
 class QueryRequest(BaseModel):
     question: str
