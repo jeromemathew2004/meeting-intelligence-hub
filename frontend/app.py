@@ -441,12 +441,35 @@ with tab2:
             """.format(avg_confidence), unsafe_allow_html=True)
         
         st.markdown("---")
-        
+        # ── CONFIDENCE FILTER
+        st.markdown("### 🎯 Filter by Confidence")
+        min_confidence = st.slider(
+            "Minimum confidence threshold",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.05,
+            help="Filter out low confidence extractions — higher threshold = more certain results only"
+        )
+
+        # Apply filter
+        filtered_decisions = [d for d in all_decisions if d.get("confidence", 0) >= min_confidence]
+        filtered_actions = [a for a in all_actions if a.get("confidence", 0) >= min_confidence]
+
+        # Show filter stats
+        col1, col2 = st.columns(2)
+        with col1:
+            st.caption(f"Showing {len(filtered_decisions)} of {len(all_decisions)} decisions")
+        with col2:
+            st.caption(f"Showing {len(filtered_actions)} of {len(all_actions)} actions")
+
+        st.markdown("---")
+
         # ── DECISIONS SECTION
         st.markdown("### ✅ Decisions Made")
-        if all_decisions:
+        if filtered_decisions:
             # Display as cards
-            for i, decision in enumerate(all_decisions, 1):
+            for i, decision in enumerate(filtered_decisions, 1):
                 confidence = decision.get("confidence", 0)
                 confidence_class = "confidence-high" if confidence > 0.8 else "confidence-medium" if confidence > 0.6 else "confidence-low"
                 
@@ -478,11 +501,22 @@ with tab2:
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
+                with st.expander("🔍 Why was this extracted?"):
+                    reasons = decision.get("reason", [])
+                    if reasons:
+                        for r in reasons:
+                            st.markdown(f"- {r}")
+                    else:
+                        st.markdown("- No reasoning available")
             
             # Export options
-            df_decisions = pd.DataFrame(all_decisions)[
-                ["source", "speaker", "text", "confidence"]
-            ]
+            df_decisions = pd.DataFrame([{
+                "source": d.get("source", ""),
+                "speaker": d.get("speaker", ""),
+                "text": d.get("text", ""),
+                "confidence": d.get("confidence", 0)
+            } for d in filtered_decisions])
+            df_decisions = df_decisions[["source", "speaker", "text", "confidence"]]
             df_decisions.columns = ["Source", "Speaker", "Decision", "Confidence"]
             df_decisions["Confidence"] = df_decisions["Confidence"].apply(
                 lambda x: f"{x:.0%}"
@@ -510,7 +544,7 @@ with tab2:
         st.markdown("### 🎯 Action Items")
         if all_actions:
             # Display as cards
-            for i, action in enumerate(all_actions, 1):
+            for i, action in enumerate(filtered_actions, 1):
                 confidence = action.get("confidence", 0)
                 confidence_class = "confidence-high" if confidence > 0.8 else "confidence-medium" if confidence > 0.6 else "confidence-low"
                 
@@ -547,8 +581,13 @@ with tab2:
                 """, unsafe_allow_html=True)
             
             # Export options
-            df_actions = pd.DataFrame(all_actions)
-            df_actions["due_date"] = df_actions.get("due_date", "Not specified")
+            df_actions = pd.DataFrame([{
+                "source": a.get("source", ""),
+                "speaker": a.get("speaker", ""),
+                "text": a.get("text", ""),
+                "due_date": a.get("due_date") or "Not specified",
+                "confidence": a.get("confidence", 0)
+            } for a in filtered_actions])
             df_actions = df_actions[["source", "speaker", "text", "due_date", "confidence"]]
             df_actions.columns = ["Source", "Assignee", "Task", "Due Date", "Confidence"]
             df_actions["Confidence"] = df_actions["Confidence"].apply(
@@ -574,10 +613,10 @@ with tab2:
         st.divider()
         
         # ── PDF EXPORT
-        if all_decisions or all_actions:
+        if filtered_decisions or filtered_actions:
             st.markdown("### 📄 Full Report Export")
             st.markdown("Download a comprehensive PDF report with all decisions and action items.")
-            pdf_bytes = export_pdf(all_decisions, all_actions)
+            pdf_bytes = export_pdf(filtered_decisions, filtered_actions)
             st.download_button(
                 label="⬇️ Download Full Report as PDF",
                 data=pdf_bytes,
