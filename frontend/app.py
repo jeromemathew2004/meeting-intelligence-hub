@@ -274,7 +274,7 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3 = st.tabs(["📤 Upload Transcripts", "📋 Insights & Analytics", "💬 AI Assistant"])
+tab1, tab2, tab3, tab4 = st.tabs(["📤 Upload Transcripts", "📋 Insights & Analytics", "💬 AI Assistant","🎭 Sentiment Analysis"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — UPLOAD
@@ -697,6 +697,204 @@ with tab3:
                 - Inquire about timelines or deadlines
                 - Request comparisons across meetings
                 """)
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 4 — SENTIMENT ANALYSIS
+# ══════════════════════════════════════════════════════════════════════════════
+with tab4:
+    st.markdown("### 🎭 Speaker Sentiment & Tone Analysis")
+
+    if not st.session_state.transcripts:
+        st.markdown("""
+        <div style="text-align: center; padding: 4rem 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🎭</div>
+            <h3 style="color: #4338ca;">No Transcripts Yet</h3>
+            <p style="color: #64748b; font-size: 1.1rem;">Upload a transcript to analyse sentiment and tone.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        import plotly.graph_objects as go
+
+        # Transcript selector
+        transcript_names = [t["filename"] for t in st.session_state.transcripts]
+        selected = st.selectbox("Select a transcript to analyse:", transcript_names)
+        selected_transcript = next(t for t in st.session_state.transcripts if t["filename"] == selected)
+
+        if st.button("🔍 Analyse Sentiment", type="primary"):
+            with st.spinner("Analysing sentiment..."):
+                metadata = selected_transcript.get("metadata", {})
+                clean_text = metadata.get("clean_text", "")
+                speakers = metadata.get("speakers", [])
+
+                try:
+                    response = requests.post(
+                        f"{API_URL}/sentiment",
+                        json={"text": clean_text, "speakers": speakers},
+                        timeout=60
+                    )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        st.session_state[f"sentiment_{selected}"] = result
+                    else:
+                        st.error("Sentiment analysis failed. Please try again.")
+                except Exception as e:
+                    st.error(f"Connection error: {str(e)}")
+
+        # Display results if available
+        if f"sentiment_{selected}" in st.session_state:
+            result = st.session_state[f"sentiment_{selected}"]
+            overall = result.get("overall", {})
+            segments = result.get("segments", [])
+            speakers_data = result.get("speakers", [])
+
+            # Overall sentiment
+            st.markdown("---")
+            st.markdown("### 📊 Overall Meeting Sentiment")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(f"""
+                <div style="background: {overall.get('color', '#94a3b8')}22;
+                            padding: 1.5rem;
+                            border-radius: 0.75rem;
+                            border-left: 4px solid {overall.get('color', '#94a3b8')};
+                            text-align: center;">
+                    <h2 style="color: {overall.get('color', '#94a3b8')}; margin: 0;">
+                        {overall.get('label', 'Unknown')}
+                    </h2>
+                    <p style="color: #64748b; margin: 0.5rem 0 0 0;">
+                        Score: {overall.get('score', 0):.3f}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                positive_count = sum(1 for s in segments if s["compound"] > 0.2)
+                st.metric("✅ Positive Segments", positive_count)
+
+            with col3:
+                negative_count = sum(1 for s in segments if s["compound"] < -0.2)
+                st.metric("⚠️ Tense Segments", negative_count)
+
+            # Colour-coded timeline
+            st.markdown("---")
+            st.markdown("### 🎨 Sentiment Timeline")
+            st.markdown("*Click on a segment to view the original transcript text*")
+
+            if segments:
+                fig = go.Figure()
+
+                for seg in segments:
+                    fig.add_trace(go.Bar(
+                        x=[f"Segment {seg['index']}"],
+                        y=[abs(seg["compound"]) if seg["compound"] != 0 else 0.1],
+                        marker_color=seg["color"],
+                        name=seg["label"],
+                        text=seg["label"],
+                        textposition="inside",
+                        hovertemplate=(
+                            f"<b>Segment {seg['index']}</b><br>"
+                            f"Lines {seg['line_start']}–{seg['line_end']}<br>"
+                            f"Sentiment: {seg['label']}<br>"
+                            f"Score: {seg['compound']}<br>"
+                            "<extra></extra>"
+                        ),
+                        showlegend=False
+                    ))
+
+                fig.update_layout(
+                    height=300,
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    xaxis=dict(showgrid=False),
+                    yaxis=dict(showgrid=True, gridcolor="#f1f5f9", title="Intensity"),
+                    bargap=0.2
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Segment drill-down
+                st.markdown("### 🔍 Segment Details")
+                for seg in segments:
+                    with st.expander(
+                        f"Segment {seg['index']} — {seg['label']} "
+                        f"(Lines {seg['line_start']}–{seg['line_end']})",
+                        expanded=False
+                    ):
+                        st.markdown(f"""
+                        <div style="background: {seg['color']}22;
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 0.5rem;
+                                    border-left: 3px solid {seg['color']};
+                                    margin-bottom: 0.75rem;">
+                            <span style="color: {seg['color']}; font-weight: 600;">
+                                {seg['label']} | Score: {seg['compound']}
+                            </span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.text(seg["text"])
+
+            # Speaker breakdown
+            st.markdown("---")
+            st.markdown("### 👥 Speaker Sentiment Breakdown")
+
+            if speakers_data:
+                fig2 = go.Figure()
+
+                fig2.add_trace(go.Bar(
+                    x=[s["speaker"] for s in speakers_data],
+                    y=[s["average_sentiment"] for s in speakers_data],
+                    marker_color=[s["color"] for s in speakers_data],
+                    text=[f"{s['label']}<br>{s['utterance_count']} utterances" for s in speakers_data],
+                    textposition="outside",
+                    hovertemplate=(
+                        "<b>%{x}</b><br>"
+                        "Avg Sentiment: %{y:.3f}<br>"
+                        "<extra></extra>"
+                    )
+                ))
+
+                fig2.update_layout(
+                    height=350,
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    xaxis=dict(showgrid=False),
+                    yaxis=dict(
+                        showgrid=True,
+                        gridcolor="#f1f5f9",
+                        title="Average Sentiment Score",
+                        range=[-1, 1]
+                    ),
+                    bargap=0.3
+                )
+
+                st.plotly_chart(fig2, use_container_width=True)
+
+                # Speaker cards
+                cols = st.columns(len(speakers_data) if len(speakers_data) <= 3 else 3)
+                for i, speaker in enumerate(speakers_data):
+                    with cols[i % 3]:
+                        st.markdown(f"""
+                        <div style="background: {speaker['color']}22;
+                                    padding: 1rem;
+                                    border-radius: 0.75rem;
+                                    border-left: 4px solid {speaker['color']};
+                                    margin-bottom: 0.5rem;">
+                            <p style="font-weight: 700; color: #1e293b; margin: 0;">
+                                👤 {speaker['speaker']}
+                            </p>
+                            <p style="color: {speaker['color']}; font-weight: 600; margin: 0.25rem 0;">
+                                {speaker['label']}
+                            </p>
+                            <p style="color: #64748b; font-size: 0.85rem; margin: 0;">
+                                Score: {speaker['average_sentiment']} 
+                                · {speaker['utterance_count']} utterances
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("No speaker data available. Make sure your transcript uses 'Speaker: text' format.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FOOTER

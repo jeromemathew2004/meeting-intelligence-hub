@@ -1,0 +1,36 @@
+@"
+Meeting Date: March 22, 2026
+Project: Q1 Budget Review
+
+David (CFO): I need everyone to understand the severity of what we are facing. We are 30 percent over budget this quarter.
+
+Rachel (Operations): That is deeply concerning. How did this happen?
+
+David (CFO): Infrastructure costs exploded after the AWS pricing change. Nobody flagged this early enough.
+
+Tom (Engineering): I disagree. I sent multiple emails about the cost spike in February. Nobody responded.
+
+Rachel (Operations): I never received those emails Tom. This is a serious communication breakdown.
+
+David (CFO): Regardless of what happened, we need to cut costs immediately. I am proposing we freeze all non-essential spending.
+
+Tom (Engineering): That will kill our velocity. We cannot ship features without the tools we need.
+
+Rachel (Operations): I have to agree with Tom on this. A blanket freeze is too aggressive.
+
+David (CFO): We have no choice. The board is furious. We agreed to reduce infrastructure spend by 25 percent by end of month.
+
+Tom (Engineering): I will audit all our AWS services and identify what can be cut or downsized by next Friday.
+
+Rachel (Operations): I will review all vendor contracts and flag anything we can renegotiate by Wednesday.
+
+David (CFO): We have also decided to pause all new hiring until further notice. That is final.
+
+Tom (Engineering): That is going to hurt us badly in Q3 when we need more engineers.
+
+Rachel (Operations): I am worried about team morale if we announce this too abruptly.
+
+David (CFO): I will draft a communication to the team explaining the situation by tomorrow morning.
+
+Tom (Engineering): I hope we can turn this around. The team deserves better than this situation.
+"@ | Out-File -FilePath sample_transcripts\2026-03-22_budget_crisis_meeting.txt -Encoding utf8

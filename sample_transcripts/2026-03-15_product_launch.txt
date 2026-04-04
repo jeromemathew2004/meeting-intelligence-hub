@@ -1,0 +1,34 @@
+@"
+Meeting Date: March 15, 2026
+Project: Mobile App Launch
+
+Sarah (PM): Good morning everyone. Let us get started with the product launch review.
+
+James (Engineering): I want to flag that we have completed all the core features for the mobile app. Everything is on track.
+
+Sarah (PM): That is fantastic news. I am really excited about this launch.
+
+Lisa (Design): The UI has been fully polished. User testing feedback was overwhelmingly positive. People love the new dashboard.
+
+Sarah (PM): We have decided to proceed with the launch on April 15th. That is confirmed.
+
+James (Engineering): I will deploy the final build to production by April 12th to allow buffer time.
+
+Lisa (Design): I will prepare all the marketing assets and app store screenshots by April 10th.
+
+Sarah (PM): We agreed to run a soft launch to 10 percent of users first before full rollout.
+
+James (Engineering): That is a smart approach. I fully support that decision.
+
+Mark (Marketing): I will coordinate with the PR team and send out the press release on launch day.
+
+Sarah (PM): We have also decided to offer a 30 day free trial for all new users during the launch period.
+
+Lisa (Design): I think that will really drive adoption. Great call.
+
+Mark (Marketing): I will set up the email campaign targeting our waitlist by April 8th.
+
+Sarah (PM): Perfect. We are all aligned. This is going to be a great launch.
+
+James (Engineering): Agreed. The team has done an incredible job. Really proud of what we have built.
+"@ | Out-File -FilePath sample_transcripts\2026-03-15_product_launch_meeting.txt -Encoding utf8

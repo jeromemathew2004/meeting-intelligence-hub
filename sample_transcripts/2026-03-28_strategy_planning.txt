@@ -1,0 +1,40 @@
+@"
+Meeting Date: March 28, 2026
+Project: Q3 Strategy Planning
+
+Emma (CEO): Welcome everyone to our Q3 strategy session. I want to start with some exciting news.
+
+Chris (Sales): Our Q2 numbers came in 20 percent above target. The team absolutely crushed it.
+
+Emma (CEO): That is outstanding. I want to personally congratulate the entire sales team.
+
+Nina (Product): Building on that momentum, I think we should accelerate our enterprise roadmap.
+
+Emma (CEO): I agree completely. We have decided to prioritise enterprise features for Q3. That is our north star.
+
+Chris (Sales): I have three enterprise deals in the pipeline worth over 2 million dollars combined.
+
+Emma (CEO): That is exactly the kind of traction we need. Chris I need you to close at least two of those by end of Q3.
+
+Chris (Sales): I will have detailed proposals sent to all three prospects by next Monday.
+
+Nina (Product): I will reprioritise the product roadmap to front-load the enterprise features by end of this week.
+
+Emma (CEO): We have also agreed to increase the sales team headcount by three people in Q3.
+
+Chris (Sales): That will make a huge difference. I will start the hiring process immediately.
+
+Nina (Product): Should we consider a dedicated enterprise support tier as well?
+
+Emma (CEO): Absolutely. We have decided to launch an enterprise support package with dedicated account managers.
+
+Chris (Sales): That will be a major selling point. Customers have been asking for this.
+
+Emma (CEO): Nina I need a proposal for the support tier pricing by next Wednesday.
+
+Nina (Product): I will have that ready by Wednesday morning with full pricing analysis.
+
+Emma (CEO): Excellent. We are in a strong position. Let us make Q3 our best quarter yet.
+
+Chris (Sales): The team is fired up. We are ready to go.
+"@ | Out-File -FilePath sample_transcripts\2026-03-28_strategy_planning_meeting.txt -Encoding utf8

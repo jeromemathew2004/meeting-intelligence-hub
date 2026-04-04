@@ -47,3 +47,13 @@ async def query(request: QueryRequest):
     from services.query_engine import answer_question
     answer = answer_question(request.question, request.transcript_text)
     return {"answer": answer}
+
+class SentimentRequest(BaseModel):
+    text: str
+    speakers: list
+
+@app.post("/sentiment")
+async def sentiment(request: SentimentRequest):
+    from services.sentiment import analyze_sentiment
+    result = analyze_sentiment(request.text, request.speakers)
+    return result
