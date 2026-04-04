@@ -225,7 +225,8 @@ if "transcripts" not in st.session_state:
     st.session_state.transcripts = []
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0
 # ══════════════════════════════════════════════════════════════════════════════
 # HEADER
 # ══════════════════════════════════════════════════════════════════════════════
@@ -267,6 +268,11 @@ with st.sidebar:
         if st.button("🗑️ Clear All Transcripts"):
             st.session_state.transcripts = []
             st.session_state.chat_history = []
+            st.session_state.uploader_key += 1  # Reset file uploader
+            keys_to_delete = [k for k in st.session_state.keys() 
+                                if k.startswith("summary_") or k.startswith("sentiment_")]
+            for k in keys_to_delete:
+                del st.session_state[k]
             st.rerun()        
     else:
         st.info("💡 No transcripts uploaded yet.\n\nGet started by uploading your first transcript!")
@@ -296,9 +302,28 @@ with tab1:
         "📎 Drag and drop files here or click to browse",
         type=["txt", "vtt"],
         accept_multiple_files=True,
-        help="Upload meeting transcript files in .txt or .vtt format"
+        help="Upload meeting transcript files in .txt or .vtt format",
+        key=f"uploader_{st.session_state.uploader_key}"
     )
-    
+   
+# Sync session state with current uploader files
+    current_filenames = [f.name for f in uploaded_files] if uploaded_files else []
+    previous_count = len(st.session_state.transcripts)
+    st.session_state.transcripts = [
+        t for t in st.session_state.transcripts
+        if t["filename"] in current_filenames
+    ]
+    # If a file was removed, force rerun to update sidebar
+    if len(st.session_state.transcripts) != previous_count:
+        st.rerun()
+    # Also clean up summaries and sentiment for removed files
+    keys_to_delete = [
+        k for k in st.session_state.keys()
+        if (k.startswith("summary_") or k.startswith("sentiment_"))
+        and any(k.endswith(t) for t in current_filenames) is False
+    ]
+    for k in keys_to_delete:
+        del st.session_state[k]
     if uploaded_files:
         for uploaded_file in uploaded_files:
             # Check if already processed
@@ -379,6 +404,63 @@ with tab1:
                     st.markdown("**Preview:**")
                     preview_text = metadata["clean_text"][:500] + ("..." if len(metadata["clean_text"]) > 500 else "")
                     st.text_area("", preview_text, height=100, disabled=True, key=f"preview_{t['filename']}")
+                # Meeting summary generator
+                summary_key = f"summary_{t['filename']}"
+                if st.button(f"✨ Generate Executive Summary", key=f"btn_{t['filename']}"):
+                    with st.spinner("Generating summary..."):
+                        try:
+                            res = requests.post(
+                                f"{API_URL}/summarize",
+                                json={
+                                    "text": metadata.get("clean_text", ""),
+                                    "filename": t["filename"]
+                                },
+                                timeout=30
+                            )
+                            if res.status_code == 200:
+                                st.session_state[summary_key] = res.json()
+                            else:
+                                st.error("Failed to generate summary.")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+
+                # Display summary if available
+                if summary_key in st.session_state:
+                    s = st.session_state[summary_key]
+                    mood_colors = {
+                        "Productive": "#10b981", "Enthusiastic": "#3b82f6",
+                        "Collaborative": "#8b5cf6", "Tense": "#f97316",
+                        "Conflict": "#ef4444", "Neutral": "#94a3b8"
+                    }
+                    mood_color = mood_colors.get(s.get("mood", "Neutral"), "#94a3b8")
+
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                                padding: 1.5rem;
+                                border-radius: 0.75rem;
+                                border-left: 4px solid {mood_color};
+                                margin-top: 1rem;">
+                        <h4 style="color: #1e293b; margin: 0 0 0.5rem 0;">
+                            📋 {s.get("headline", "Meeting Summary")}
+                        </h4>
+                        <p style="color: #475569; margin: 0 0 1rem 0;">
+                            {s.get("summary", "")}
+                        </p>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                            {"".join([f'<span style="background: #eef2ff; color: #4338ca; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 600;">{topic}</span>' for topic in s.get("key_topics", [])])}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="background: {mood_color}22; color: {mood_color}; 
+                                         padding: 0.25rem 0.75rem; border-radius: 1rem; 
+                                         font-weight: 600; font-size: 0.85rem;">
+                                🎭 {s.get("mood", "Neutral")}
+                            </span>
+                            <span style="color: #64748b; font-size: 0.85rem;">
+                                ➡️ {s.get("next_steps", "")}
+                            </span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)    
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — DECISIONS & ACTIONS

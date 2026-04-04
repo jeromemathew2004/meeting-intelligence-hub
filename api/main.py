@@ -57,3 +57,13 @@ async def sentiment(request: SentimentRequest):
     from services.sentiment import analyze_sentiment
     result = analyze_sentiment(request.text, request.speakers)
     return result
+
+class SummarizeRequest(BaseModel):
+    text: str
+    filename: str
+
+@app.post("/summarize")
+async def summarize(request: SummarizeRequest):
+    from services.summarizer import generate_summary
+    result = generate_summary(request.text, request.filename)
+    return result
