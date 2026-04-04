@@ -1,5 +1,37 @@
 import re
 from models.schema import Metadata
+import re
+from datetime import datetime
+
+def _detect_date(text: str, filename: str) -> str:
+    """Try to detect meeting date from filename or transcript content."""
+
+    # Try filename first — e.g. 2026-04-03_meeting.txt or meeting_20260403.txt
+    date_patterns_filename = [
+        r'(\d{4}-\d{2}-\d{2})',   # 2026-04-03
+        r'(\d{4}\d{2}\d{2})',      # 20260403
+        r'(\d{2}-\d{2}-\d{4})',   # 03-04-2026
+    ]
+    for pattern in date_patterns_filename:
+        match = re.search(pattern, filename)
+        if match:
+            return match.group(1)
+
+    # Try transcript content — look for common date formats
+    date_patterns_content = [
+        r'\b(\d{4}-\d{2}-\d{2})\b',                          # 2026-04-03
+        r'\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\b',         # 03/04/2026
+        r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b',  # April 3, 2026
+        r'\b\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b',    # 3 April 2026
+    ]
+    for pattern in date_patterns_content:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(0)
+
+    # Fall back to today's date
+    return datetime.today().strftime("%Y-%m-%d")
+
 
 def parse_transcript(text: str) -> dict:
     """Auto-detect format and parse .txt or .vtt transcript."""
@@ -26,7 +58,8 @@ def _parse_txt(text: str) -> dict:
         "char_count": len(clean),
         "clean_text": clean,
         "speakers": speakers,
-        "format": "txt"
+        "format": "txt",
+        "meeting_date": _detect_date(clean, "")
     }
 
 
@@ -67,7 +100,8 @@ def _parse_vtt(text: str) -> dict:
         "char_count": len(full_text),
         "clean_text": full_text,
         "speakers": speakers,
-        "format": "vtt"
+        "format": "vtt",
+        "meeting_date": _detect_date(clean, "")
     }
 
 

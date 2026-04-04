@@ -26,6 +26,7 @@ The JSON must match this exact structure:
     {
       "speaker": "Name of person assigned the task",
       "text": "The specific task or action item",
+      "due_date": "The deadline mentioned e.g. Friday, 20th, next Wednesday or null if not mentioned",
       "confidence": 0.80,
       "reason": ["why you classified this as an action item"]
     }
@@ -37,10 +38,10 @@ Rules:
 - Actions are tasks assigned to a specific person with an implied or explicit deadline
 - confidence is a float between 0.0 and 1.0
 - reason is a list of short strings explaining your classification
+- due_date should be the exact deadline mentioned in the transcript, or null if none
 - If no decisions or actions exist, return empty lists
 - Speaker should be "Unknown" if not identifiable
 - Never invent information not present in the transcript"""
-
 
 def extract_info(text: str) -> Insights:
     """
@@ -100,6 +101,7 @@ def _parse_response(raw: str) -> Insights:
             text=item.get("text", ""),
             confidence=float(item.get("confidence", 0.5)),
             reason=item.get("reason", [])
+            
         )
         for item in data.get("decisions", [])
     ]
@@ -109,7 +111,8 @@ def _parse_response(raw: str) -> Insights:
             speaker=item.get("speaker", "Unknown"),
             text=item.get("text", ""),
             confidence=float(item.get("confidence", 0.5)),
-            reason=item.get("reason", [])
+            reason=item.get("reason", []),
+            due_date=item.get("due_date", None)
         )
         for item in data.get("actions", [])
     ]

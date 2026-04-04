@@ -344,7 +344,19 @@ with tab1:
                 col2.metric("📏 Lines", metadata.get("line_count", 0))
                 col3.metric("✅ Decisions", len(insights.get("decisions", [])))
                 col4.metric("🎯 Actions", len(insights.get("actions", [])))
-                           
+                # Meeting date
+                meeting_date = metadata.get("meeting_date", "Unknown")
+                st.markdown(f"""
+                <div style="background: #f0fdf4;
+                            padding: 0.5rem 1rem;
+                            border-radius: 0.5rem;
+                            border-left: 3px solid #10b981;
+                            margin-bottom: 0.75rem;">
+                    <span style="color: #065f46; font-weight: 600;">
+                        📅 Meeting Date: {meeting_date}
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)           
                 # Speakers detected
                 speakers = metadata.get("speakers", [])
                 if speakers:
@@ -528,14 +540,17 @@ with tab2:
                     <p style="font-size: 1rem; color: #1e293b; margin: 0.75rem 0 0 0;">
                         {action.get("text", "No text available")}
                     </p>
+                    <p style="font-size: 0.875rem; color: #475569; margin: 0.5rem 0 0 0;">
+                        ⏰ <strong>Due:</strong> {action.get("due_date") or "No deadline mentioned"}
+                    </p>
                 </div>
                 """, unsafe_allow_html=True)
             
             # Export options
-            df_actions = pd.DataFrame(all_actions)[
-                ["source", "speaker", "text", "confidence"]
-            ]
-            df_actions.columns = ["Source", "Assignee", "Task", "Confidence"]
+            df_actions = pd.DataFrame(all_actions)
+            df_actions["due_date"] = df_actions.get("due_date", "Not specified")
+            df_actions = df_actions[["source", "speaker", "text", "due_date", "confidence"]]
+            df_actions.columns = ["Source", "Assignee", "Task", "Due Date", "Confidence"]
             df_actions["Confidence"] = df_actions["Confidence"].apply(
                 lambda x: f"{x:.0%}"
             )

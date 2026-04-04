@@ -30,7 +30,8 @@ async def process_file(file: UploadFile):
             "line_count": parsed["line_count"],
             "char_count": parsed["char_count"],
             "clean_text": parsed["clean_text"],  # ← THIS was missing
-            "speakers": parsed.get("speakers", [])
+            "speakers": parsed.get("speakers", []),
+            "meeting_date": parsed.get("meeting_date", "Unknown")
         },
         "insights": extracted
     }
