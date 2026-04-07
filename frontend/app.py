@@ -939,7 +939,32 @@ with tab4:
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
-
+                st.markdown("""
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; padding: 0.75rem 1rem; background: #f8fafc; border-radius: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: #64748b;">Legend:</span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span style="font-size: 0.8rem; color: #64748b;">Consensus</span>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>
+                        <span style="font-size: 0.8rem; color: #64748b;">Enthusiasm</span>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                        <span style="font-size: 0.8rem; color: #64748b;">Uncertainty</span>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #f97316; display: inline-block;"></span>
+                        <span style="font-size: 0.8rem; color: #64748b;">Concern</span>
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                        <span style="font-size: 0.8rem; color: #64748b;">Conflict</span>
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
+            
                 # Segment drill-down
                 st.markdown("### 🔍 Segment Details")
                 for seg in segments:
