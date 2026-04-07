@@ -1,6 +1,6 @@
 @"
-Meeting Date: March 15, 2026
-Project: Mobile App Launch
+March 15, 2026
+Mobile App Launch
 
 Sarah (PM): Good morning everyone. Let us get started with the product launch review.
 

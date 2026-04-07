@@ -1,6 +1,6 @@
 @"
-Meeting Date: March 22, 2026
-Project: Q1 Budget Review
+March 22, 2026
+Q1 Budget Review
 
 David (CFO): I need everyone to understand the severity of what we are facing. We are 30 percent over budget this quarter.
 
