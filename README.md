@@ -20,15 +20,19 @@ Meeting Intelligence Hub automatically processes meeting transcripts using AI to
 
 ## 🚀 Features
 
-- **Decision & Action Item Extractor** — Automatically identifies decisions made and tasks assigned from any meeting transcript
+- **Decision & Action Item Extractor** — Automatically identifies decisions made and tasks assigned from any meeting transcript with LLM-powered extraction
 - **Multi-format Support** — Accepts both `.txt` and `.vtt` (WebVTT) transcript formats
-- **Contextual Query Chatbot** — Ask natural language questions across uploaded transcripts and get cited answers
-- **Export** — Download decisions and action items as CSV or PDF
-- **Clean UI** — Drag-and-drop upload, structured tables, and a chat interface
+- **Confidence Filtering** — Filter extracted decisions and action items by confidence threshold to focus on high-certainty findings
+- **Contextual Query Chatbot** — Ask natural language questions across uploaded transcripts and get instant AI-powered answers
+- **Speaker Sentiment & Tone Analysis** — Analyze sentiment for individual speakers and track emotional tone throughout meetings
+- **Executive Summary Generator** — Generate AI-powered summaries for individual transcripts
+- **Multi-Transcript Support** — Upload and analyze multiple transcripts simultaneously; the chatbot and sentiment analyzer work across all transcripts
+- **Dashboard Statistics** — Real-time metrics showing total transcripts, decisions, action items, and word count
+- **Export Options** — Download decisions and action items as CSV or PDF reports
+- **Chat History Management** — Persistent chat history with clear functionality for conversation management
+- **Professional UI** — Drag-and-drop upload, tabbed interface, styled cards, and responsive design
 
 ---
-
-## 🛠️ Tech Stack
 
 ## 🛠️ Tech Stack
 
@@ -114,27 +118,32 @@ App will be running at `http://localhost:8501`
 meeting-intelligence-hub/
 │
 ├── api/
-│   └── main.py                 # FastAPI routes
+│   └── main.py                 # FastAPI routes and endpoints
 │
 ├── services/
 │   ├── ingestion.py            # Transcript parsing (.txt and .vtt)
 │   ├── extractor.py            # LLM-powered decision & action extraction
 │   ├── query_engine.py         # Chatbot query answering
+│   ├── sentiment.py            # Speaker sentiment and tone analysis
+│   ├── summarizer.py           # Executive summary generation
 │   └── exporter.py             # CSV and PDF export
 │
 ├── models/
 │   └── schema.py               # Pydantic response models
 │
 ├── frontend/
-│   └── app.py                  # Streamlit UI
+│   └── app.py                  # Streamlit multi-tab UI
 │
 ├── sample_transcripts/
 │   ├── test.txt                # Sample plain text transcript
-│   └── test.vtt                # Sample WebVTT transcript
+│   ├── test.vtt                # Sample WebVTT transcript
+│   ├── product_meeting.txt     # Additional sample transcript
+│   └── ...                     # More sample transcripts
 │
 ├── .env.example                # Environment variable template
 ├── requirements.txt            # Python dependencies
-└── README.md                   # This file
+├── README.md                   # This file
+└── APPROACH.md                 # Technical approach document
 ```
 
 ---
@@ -143,33 +152,63 @@ meeting-intelligence-hub/
 
 Sample transcripts are included in `sample_transcripts/` so you can test immediately after setup.
 
-### Test Feature 1 — Extraction
+### Test Feature 1 — Decision & Action Item Extraction
 
 1. Open `http://localhost:8501`
-2. Go to the **Upload** tab
+2. Go to the **📤 Upload Transcripts** tab
 3. Upload `sample_transcripts/test.txt` or `sample_transcripts/test.vtt`
-4. Go to the **Decisions & Actions** tab
-5. View extracted decisions and action items
-6. Click **Export as CSV** or **Export as PDF**
+4. View processing status and transcript preview
+5. Go to the **📋 Insights & Analytics** tab
+6. View extracted decisions and action items with confidence scores
+7. Use the **🎯 Filter by Confidence** slider to filter results
+8. Export as CSV or PDF using the download buttons
 
-### Test Feature 2 — Chatbot
+### Test Feature 2 — Executive Summary
+
+1. In the **📤 Upload Transcripts** tab, after uploading a transcript
+2. Click the **✨ Generate Executive Summary** button
+3. Wait for the AI to generate a summary
+4. View the summary in the expanded transcript card
+
+### Test Feature 3 — AI Chatbot
+
+1. Upload a transcript first (in the **📤 Upload Transcripts** tab)
+2. Go to the **💬 AI Assistant** tab
+3. Ask questions like:
+   - _"What were the main decisions made?"_
+   - _"Who has action items assigned to them?"_
+   - _"When are we launching the product?"_
+   - _"What topics were discussed most?"_
+4. Chat history is automatically maintained within the session
+5. Click **🗑️ Clear Chat** to reset conversation
+
+### Test Feature 4 — Sentiment Analysis
 
 1. Upload a transcript first
-2. Go to the **Chatbot** tab
-3. Ask a question like:
-   - _"When are we launching the product?"_
-   - _"What did Sarah say she would do?"_
-   - _"What budget decision was made?"_
+2. Go to the **🎭 Sentiment Analysis** tab
+3. Click **🔍 Analyse Sentiment**
+4. View the sentiment timeline showing emotional arc throughout the meeting
+5. See speaker sentiment breakdown showing each participant's average sentiment
+6. Inspect individual segment details with full text passages
+
+### Test Feature 5 — Multi-Transcript Support
+
+1. Upload multiple transcripts in the **📤 Upload Transcripts** tab
+2. In the **💬 AI Assistant** tab, the chatbot will search across all transcripts
+3. In the **📋 Insights & Analytics** tab, view aggregated decisions and actions from all files
+4. The sidebar dashboard shows combined statistics across all uploads
 
 ---
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint   | Description                      |
-| ------ | ---------- | -------------------------------- |
-| GET    | `/`        | Health check                     |
-| POST   | `/process` | Upload and process a transcript  |
-| POST   | `/query`   | Ask a question about transcripts |
+| Method | Endpoint     | Description                      |
+| ------ | ------------ | -------------------------------- |
+| GET    | `/`          | Health check                     |
+| POST   | `/process`   | Upload and process a transcript  |
+| POST   | `/query`     | Ask a question about transcripts |
+| POST   | `/sentiment` | Analyze sentiment for speakers   |
+| POST   | `/summarize` | Generate executive summary       |
 
 ### Example — Process a transcript
 
@@ -184,6 +223,22 @@ curl -X POST http://localhost:8000/process \
 curl -X POST http://localhost:8000/query \
   -H "Content-Type: application/json" \
   -d '{"question": "When are we launching?", "transcript_text": "John: We decided to launch on the 15th."}'
+```
+
+### Example — Sentiment Analysis
+
+```bash
+curl -X POST http://localhost:8000/sentiment \
+  -H "Content-Type: application/json" \
+  -d '{"text": "John: Great work! Sarah: Thanks, excited to continue.", "speakers": ["John", "Sarah"]}'
+```
+
+### Example — Generate Summary
+
+```bash
+curl -X POST http://localhost:8000/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"text": "[full transcript text]", "filename": "meeting.txt"}'
 ```
 
 ---

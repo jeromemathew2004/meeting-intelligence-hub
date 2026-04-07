@@ -403,7 +403,7 @@ with tab1:
                 if "clean_text" in metadata:
                     st.markdown("**Preview:**")
                     preview_text = metadata["clean_text"][:500] + ("..." if len(metadata["clean_text"]) > 500 else "")
-                    st.text_area("", preview_text, height=100, disabled=True, key=f"preview_{t['filename']}")
+                    st.text_area("Transcript Preview", preview_text, height=100, disabled=True, key=f"preview_{t['filename']}", label_visibility="collapsed")
                 # Meeting summary generator
                 summary_key = f"summary_{t['filename']}"
                 if st.button(f"✨ Generate Executive Summary", key=f"btn_{t['filename']}"):
@@ -592,31 +592,34 @@ with tab2:
                         st.markdown("- No reasoning available")
             
             # Export options
-            df_decisions = pd.DataFrame([{
-                "source": d.get("source", ""),
-                "speaker": d.get("speaker", ""),
-                "text": d.get("text", ""),
-                "confidence": d.get("confidence", 0)
-            } for d in filtered_decisions])
-            df_decisions = df_decisions[["source", "speaker", "text", "confidence"]]
-            df_decisions.columns = ["Source", "Speaker", "Decision", "Confidence"]
-            df_decisions["Confidence"] = df_decisions["Confidence"].apply(
-                lambda x: f"{x:.0%}"
-            )
-            
-            st.markdown("---")
-            st.markdown("**📥 Export Decisions**")
-            col1, col2 = st.columns(2)
-            with col1:
-                csv = df_decisions.to_csv(index=False)
-                st.download_button(
-                    label="⬇️ Download as CSV",
-                    data=csv,
-                    file_name="decisions.csv",
-                    mime="text/csv"
+            if filtered_decisions:
+                df_decisions = pd.DataFrame([{
+                    "source": d.get("source", ""),
+                    "speaker": d.get("speaker", ""),
+                    "text": d.get("text", ""),
+                    "confidence": d.get("confidence", 0)
+                } for d in filtered_decisions])
+                df_decisions = df_decisions[["source", "speaker", "text", "confidence"]]
+                df_decisions.columns = ["Source", "Speaker", "Decision", "Confidence"]
+                df_decisions["Confidence"] = df_decisions["Confidence"].apply(
+                    lambda x: f"{x:.0%}"
                 )
-            with col2:
-                st.dataframe(df_decisions, use_container_width=True, hide_index=True)
+                
+                st.markdown("---")
+                st.markdown("**📥 Export Decisions**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    csv = df_decisions.to_csv(index=False)
+                    st.download_button(
+                        label="⬇️ Download as CSV",
+                        data=csv,
+                        file_name="decisions.csv",
+                        mime="text/csv"
+                    )
+                with col2:
+                    st.dataframe(df_decisions, width='stretch', hide_index=True)
+            else:
+                st.info("⚠️ No decisions match the selected confidence threshold. Try lowering the minimum confidence.")
         else:
             st.info("ℹ️ No decisions found in uploaded transcripts.")
         
@@ -663,32 +666,35 @@ with tab2:
                 """, unsafe_allow_html=True)
             
             # Export options
-            df_actions = pd.DataFrame([{
-                "source": a.get("source", ""),
-                "speaker": a.get("speaker", ""),
-                "text": a.get("text", ""),
-                "due_date": a.get("due_date") or "Not specified",
-                "confidence": a.get("confidence", 0)
-            } for a in filtered_actions])
-            df_actions = df_actions[["source", "speaker", "text", "due_date", "confidence"]]
-            df_actions.columns = ["Source", "Assignee", "Task", "Due Date", "Confidence"]
-            df_actions["Confidence"] = df_actions["Confidence"].apply(
-                lambda x: f"{x:.0%}"
-            )
-            
-            st.markdown("---")
-            st.markdown("**📥 Export Action Items**")
-            col1, col2 = st.columns(2)
-            with col1:
-                csv_actions = df_actions.to_csv(index=False)
-                st.download_button(
-                    label="⬇️ Download as CSV",
-                    data=csv_actions,
-                    file_name="action_items.csv",
-                    mime="text/csv"
+            if filtered_actions:
+                df_actions = pd.DataFrame([{
+                    "source": a.get("source", ""),
+                    "speaker": a.get("speaker", ""),
+                    "text": a.get("text", ""),
+                    "due_date": a.get("due_date") or "Not specified",
+                    "confidence": a.get("confidence", 0)
+                } for a in filtered_actions])
+                df_actions = df_actions[["source", "speaker", "text", "due_date", "confidence"]]
+                df_actions.columns = ["Source", "Assignee", "Task", "Due Date", "Confidence"]
+                df_actions["Confidence"] = df_actions["Confidence"].apply(
+                    lambda x: f"{x:.0%}"
                 )
-            with col2:
-                st.dataframe(df_actions, use_container_width=True, hide_index=True)
+                
+                st.markdown("---")
+                st.markdown("**📥 Export Action Items**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    csv_actions = df_actions.to_csv(index=False)
+                    st.download_button(
+                        label="⬇️ Download as CSV",
+                        data=csv_actions,
+                        file_name="action_items.csv",
+                        mime="text/csv"
+                    )
+                with col2:
+                    st.dataframe(df_actions, width='stretch', hide_index=True)
+            else:
+                st.info("⚠️ No action items match the selected confidence threshold. Try lowering the minimum confidence.")
         else:
             st.info("ℹ️ No action items found in uploaded transcripts.")
         
